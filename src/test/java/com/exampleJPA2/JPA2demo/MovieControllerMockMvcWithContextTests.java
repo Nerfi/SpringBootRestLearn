@@ -6,7 +6,14 @@ import com.exampleJPA2.JPA2demo.models.Movie;
 import com.exampleJPA2.JPA2demo.repository.MovieRepository;
 import com.exampleJPA2.JPA2demo.repository.UserRepository;
 import com.exampleJPA2.JPA2demo.security.jwt.UserDetailsImpl;
+
+//status lib
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+
+
 import org.junit.jupiter.api.Test;
+import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,7 +29,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @AutoConfigureJsonTesters
@@ -83,4 +92,57 @@ public class MovieControllerMockMvcWithContextTests {
         //assertThat(response.getContentAsString()).isEmpty(); // eliminamos esto ya que al devolver una custom exception , viene con un body: "{"statusCode":404,"timestamp":"2024-02-16T13:11:20.350+00:00","message":"There is not such movies","description":"uri=/movies/2000"}"
         //al venir con un body la linea de arriba no nos sirve ya que espera que la response.getContentAsString().isEmpty(), es decir que no venga body
     }
+
+    @Test
+    @WithMockUser(username = "admina", password = "pwd", roles = "USER")
+    public void canDeleteMovie() throws Exception {
+        // for testing principal
+        //https://stackoverflow.com/questions/45561471/mock-principal-for-spring-rest-controller
+        Long idToTest = 30L;
+        final Movie movieToDelete = new  Movie("Bing", "Juan testing", "España",3);
+
+        //first get the movie
+        Mockito.when(movieRepository.findById(idToTest)).thenReturn(Optional.of(movieToDelete)).thenReturn(null);
+
+
+        MockHttpServletResponse response = mockMvc.perform(
+                delete("/movies/30")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        //.accept(MediaType.APPLICATION_JSON)
+        )
+                .andReturn().getResponse();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NO_CONTENT.value());
+
+//        mockMvc.perform(delete("/movies/100")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .accept(MediaType.APPLICATION_JSON)
+//                )
+//                .andExpect(status().isNoContent());
+
+
+    }
 }
+
+/*
+@Test
+@WithMockUser(username = "admina", password = "pwd", roles = "USER")
+public void canDeleteMovie() throws Exception {
+    // Configura tus mocks y datos de prueba aquí...
+
+    // Crea un Principal simulado
+    Principal mockPrincipal = Mockito.mock(Principal.class);
+    Mockito.when(mockPrincipal.getName()).thenReturn("admina");
+
+    // Usa el Principal simulado en tu solicitud
+    MockHttpServletResponse response = mockMvc.perform(
+            delete("/movies/100")
+                    .principal(mockPrincipal)
+                    .contentType(MediaType.APPLICATION_JSON)
+    )
+            .andReturn().getResponse();
+
+    // Realiza tus aserciones aquí...
+}
+
+
+ */

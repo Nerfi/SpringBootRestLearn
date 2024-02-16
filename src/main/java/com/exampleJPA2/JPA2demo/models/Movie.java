@@ -64,7 +64,7 @@ public class Movie {
     }
 
     // THIS CONSTURCTOR WAS ADDED IN ORDER TO PASS THE TEST IN TEST FOLDER JUST THAT
-    public Movie(String bing, String juanTesting, String españa, int i) {
+    public Movie(String title, String juanTesting, String country, int rating) {
     }
 
 

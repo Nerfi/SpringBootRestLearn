@@ -8,6 +8,7 @@ import com.exampleJPA2.JPA2demo.repository.UserRepository;
 import com.exampleJPA2.JPA2demo.security.jwt.UserDetailsImpl;
 
 //status lib
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -19,12 +20,14 @@ import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.security.Principal;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +39,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @AutoConfigureJsonTesters
 @WebMvcTest(MoviesController.class)
+//@Import(SecurityConfig.class)/
 public class MovieControllerMockMvcWithContextTests {
     @Autowired
     private MockMvc mockMvc;
@@ -99,50 +103,26 @@ public class MovieControllerMockMvcWithContextTests {
         // for testing principal
         //https://stackoverflow.com/questions/45561471/mock-principal-for-spring-rest-controller
         Long idToTest = 30L;
-        final Movie movieToDelete = new  Movie("Bing", "Juan testing", "España",3);
 
-        //first get the movie
-        Mockito.when(movieRepository.findById(idToTest)).thenReturn(Optional.of(movieToDelete)).thenReturn(null);
+        // Crea un Principal simulado
+        Principal mockPrincipal = Mockito.mock(Principal.class);
 
 
+        Mockito.when(movieRepository.existsByIdAndOwner(idToTest, "admina")).thenReturn(true);
+
+
+
+        // Usa el Principal simulado en tu solicitud
         MockHttpServletResponse response = mockMvc.perform(
-                delete("/movies/30")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        //.accept(MediaType.APPLICATION_JSON)
-        )
+                        delete("/movies/30")
+                                .principal(mockPrincipal)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .with(csrf())
+                )
                 .andReturn().getResponse();
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
-//        mockMvc.perform(delete("/movies/100")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .accept(MediaType.APPLICATION_JSON)
-//                )
-//                .andExpect(status().isNoContent());
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NO_CONTENT.value());
 
 
     }
 }
-
-/*
-@Test
-@WithMockUser(username = "admina", password = "pwd", roles = "USER")
-public void canDeleteMovie() throws Exception {
-    // Configura tus mocks y datos de prueba aquí...
-
-    // Crea un Principal simulado
-    Principal mockPrincipal = Mockito.mock(Principal.class);
-    Mockito.when(mockPrincipal.getName()).thenReturn("admina");
-
-    // Usa el Principal simulado en tu solicitud
-    MockHttpServletResponse response = mockMvc.perform(
-            delete("/movies/100")
-                    .principal(mockPrincipal)
-                    .contentType(MediaType.APPLICATION_JSON)
-    )
-            .andReturn().getResponse();
-
-    // Realiza tus aserciones aquí...
-}
-
-
- */

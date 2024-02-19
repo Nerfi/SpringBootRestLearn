@@ -1,18 +1,23 @@
 package com.exampleJPA2.JPA2demo;
 
 import com.exampleJPA2.JPA2demo.controllers.MoviesController;
+import com.exampleJPA2.JPA2demo.exceptions.MovieAlreadyExists;
 import com.exampleJPA2.JPA2demo.exceptions.ResourceNotFoundException;
 import com.exampleJPA2.JPA2demo.models.Movie;
+import com.exampleJPA2.JPA2demo.models.User;
 import com.exampleJPA2.JPA2demo.repository.MovieRepository;
 import com.exampleJPA2.JPA2demo.repository.UserRepository;
 import com.exampleJPA2.JPA2demo.security.jwt.UserDetailsImpl;
 
 //status lib
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +26,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.security.Principal;
 import java.util.Optional;
@@ -34,8 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @AutoConfigureJsonTesters
 @WebMvcTest(MoviesController.class)
@@ -52,6 +58,9 @@ public class MovieControllerMockMvcWithContextTests {
 
     @Autowired
     private JacksonTester<Movie> jsonMovie;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     //@WithMockUser(username = "user1", password = "pwd", roles = "USER") es para testear este endpoint con Roles ya que tenemos security dep
     // https://stackoverflow.com/questions/15203485/spring-test-security-how-to-mock-authentication
@@ -125,4 +134,114 @@ public class MovieControllerMockMvcWithContextTests {
 
 
     }
+
+
+    @Test
+    @WithMockUser(username = "admina", password = "pwd", roles = "USER")
+    public void canUpdateMovie() throws  Exception {
+        long id = 10L;
+        Movie movie =  new Movie("Bing", "Juan testing", "España", 3);
+        Movie updatedMovie = new  Movie("Bing 2", "testing", "Brasil", 3);
+
+        when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
+        when(movieRepository.save(any(Movie.class))).thenReturn(updatedMovie);
+
+        //setting the owner
+        // Mantener el mismo owner que el original movie
+        updatedMovie.setOwner("admina");
+
+        //works
+        System.out.println(updatedMovie.getOwner() + " the owner");
+
+        mockMvc.perform(
+                put("/movies/10").contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .content("{\"title\": \"Bing\", \"author\":\"Juanako\", \"country\":\"Brasil\", \"rating\": \"3\", \"owner\": \"admina\"}")
+                        .contentType(MediaType.APPLICATION_JSON)
+
+
+
+        )
+                .andExpect(status().isNoContent())
+                .andExpect(jsonPath("$.title").value(updatedMovie.getTitle()))
+                .andDo(print());
+
+
+    }
+
+    //TODO: test para la creacion de una nueva movie
+
+    @Test
+    @WithMockUser(username = "admina", password = "pwd", roles = {"USER", "MODERATOR"})
+    public void createNewMovie() throws  Exception{
+
+        // Crea un Principal simulado
+        Principal mockPrincipal = Mockito.mock(Principal.class);
+        when(mockPrincipal.getName()).thenReturn("admina");
+        User userMock = new User("admina", "password", "ROLE_USER");
+        when(userRepository.findByUsername("admina")).thenReturn(Optional.of(userMock));
+
+
+        Movie movietoSave = new Movie(123L,"Bing","juan", "españa", 3, mockPrincipal.getName(),userMock);
+        //when(movieRepository.save(movietoSave)).thenReturn(movietoSave);
+
+        when(movieRepository.save(any(Movie.class))).thenAnswer(invocation -> {
+            Movie savedMovie = invocation.getArgument(0);
+           savedMovie.setMovie_id(123L); // Asigna un ID temporal
+            return savedMovie;
+        });
+
+        MvcResult result = mockMvc.perform(
+                post("/movies/add")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content("{\"title\": \"Bing\", \"author\":\"Juanako\", \"country\":\"Brasil\", \"rating\": \"3\"}")
+                        .with(csrf())
+
+        )
+                .andReturn();
+        MockHttpServletResponse response = result.getResponse();
+        assertEquals(HttpStatus.CREATED.value(), response.getStatus());
+        assertEquals("http://localhost/movies/" + movietoSave.getMovie_id(),
+                response.getHeader(HttpHeaders.LOCATION));
+
+
+
+    }
+
+    @Test
+    @WithMockUser(username = "admina", password = "pwd", roles = {"USER", "MODERATOR"})
+    public void shouldNotAllowToCreateMovieIfTitleAlreadyExists() throws Exception{
+        //THIS TEST PASSED BUT IM NOT SURE IF THIS IS THE RIGHT IMPLENTATION
+        Movie movietoSave = new Movie("Bing","juan", "españa", 3);
+        when(movieRepository.existsByTitle(movietoSave.getTitle())).thenThrow(new MovieAlreadyExists("Error: movie already exists"));
+//        when(movieRepository.existsByTitle(movietoSave.getTitle())).thenReturn(true);
+
+
+        MockHttpServletResponse response =  mockMvc.perform(
+            post("/movies/add")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"title\": \"Bing\", \"author\":\"Juanako\", \"country\":\"Brasil\", \"rating\": \"3\", \"owner\": \"admina\"}")
+                    .with(csrf())
+    )
+            .andReturn().getResponse();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
+
+
+    }
+
+
+    @Test
+    public void shouldRejectCreatingReviewsWhenUserIsAnonymous() throws Exception {
+        this.mockMvc
+                .perform(
+                        post("/api/tasks")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"title\": \"Bing\", \"author\":\"Juanako\", \"country\":\"Brasil\", \"rating\": \"3\", \"owner\": \"admina\"}")
+                                .with(csrf())
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
 }

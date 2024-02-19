@@ -68,13 +68,13 @@ public class Movie {
     }
 
 
+
     // hemos añadido este metodo ya que JPA parece parece que solo entiende el nombre del campo cuando se llama ID(en minisculas) a secas
     // al haberlo llamado movie_id por las convenciones que tiene no puedo usar metodos del repositorio que sean de buscar mediante el ID, que es el
     // nombre del field in the class
     public Long getId(){
         return  this.movie_id;
     }
-
 
 
 

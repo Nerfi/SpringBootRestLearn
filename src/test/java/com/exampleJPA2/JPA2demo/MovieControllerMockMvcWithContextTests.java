@@ -29,10 +29,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.security.Principal;
 import java.util.Optional;
@@ -139,37 +141,33 @@ public class MovieControllerMockMvcWithContextTests {
     @Test
     @WithMockUser(username = "admina", password = "pwd", roles = "USER")
     public void canUpdateMovie() throws  Exception {
-        long id = 10L;
+        long id = 28L;
         Movie movie =  new Movie("Bing", "Juan testing", "España", 3);
+
+        movie.setOwner("admina");
         Movie updatedMovie = new  Movie("Bing 2", "testing", "Brasil", 3);
 
         when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
         when(movieRepository.save(any(Movie.class))).thenReturn(updatedMovie);
 
-        //setting the owner
-        // Mantener el mismo owner que el original movie
-        updatedMovie.setOwner("admina");
-
-        //works
-        System.out.println(updatedMovie.getOwner() + " the owner");
 
         mockMvc.perform(
-                put("/movies/10").contentType(MediaType.APPLICATION_JSON)
-                        .with(csrf())
-                        .content("{\"title\": \"Bing\", \"author\":\"Juanako\", \"country\":\"Brasil\", \"rating\": \"3\", \"owner\": \"admina\"}")
-                        .contentType(MediaType.APPLICATION_JSON)
+                        put("/movies/28").contentType(MediaType.APPLICATION_JSON)
+                                .with(csrf())
+                                .content("{\"title\": \"Bing\", \"author\":\"Juanako\", \"country\":\"Brasil\", \"rating\": \"3\", \"owner\": \"admina\"}")
+                                .contentType(MediaType.APPLICATION_JSON)
 
 
-
-        )
+                )
                 .andExpect(status().isNoContent())
-                .andExpect(jsonPath("$.title").value(updatedMovie.getTitle()))
                 .andDo(print());
+        //aqui no podemos hacer   .andExpect(jsonPath("$.email", is(email)))
+        //ya que nuestro controlador no devuelve el objeto actualizado es decir,  return ResponseEntity.ok(movieUpdated);
+        //sino que devolvemos un return ResponseEntity.noContent().build(); por ello no podemos hacer las assertions
+        //de jsonpath ya que no hay objeto de vuelta
 
 
     }
-
-    //TODO: test para la creacion de una nueva movie
 
     @Test
     @WithMockUser(username = "admina", password = "pwd", roles = {"USER", "MODERATOR"})

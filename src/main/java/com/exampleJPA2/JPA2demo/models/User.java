@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import jakarta.persistence.*;
-
+import jakarta.validation.constraints.*;
 
 
 @Entity
@@ -22,17 +22,17 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //@NotBlank
-    //@Size(max = 20)
+    @NotBlank
+    @Size(max = 20)
     private String username;
 
 
-    //@NotBlank
-    //@Size(max = 50)
-    //@Email
+    @NotBlank
+    @Size(max = 50)
+    @Email
     private String email;
 
-    //@NotBlank
+    @NotBlank
     //@Size(max = 120)
     private String password;
 

@@ -3,10 +3,14 @@ package com.exampleJPA2.JPA2demo.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-//import jakarta.validation.constraints.*;
 
 // lombok
+import jakarta.validation.constraints.*;
+
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Getter
@@ -31,19 +35,19 @@ public class Movie {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // IDNETITY es por mysql
     private Long movie_id;
-    //@NotEmpty(message =  "Title debe estar presente")
-   // @Size(min = 2, max = 120)
+    @NotEmpty(message =  "Title debe estar presente")
+    @Size(min = 2, max = 120)
     private String title;
     //maybe this could be an array of authors
-    //@NotEmpty(message = "Author debe de estar presente")
-    //@Size(min = 2, max = 120)
+    @NotEmpty(message = "Author debe de estar presente")
+    @Size(min = 2, max = 120)
     private String author;
-    //@NotEmpty(message = "Country debe de estar presente")
-    //@Size(min = 2, max = 120)
+    @NotEmpty(message = "Country debe de estar presente")
+    @Size(min = 2, max = 120)
     private String country;
 
-    //@NotNull(message = "Rating debe estar presente ")
-    //@Min(0) @Max(value = 5, message = "El valor no puede ser mayor que 5")
+    @NotNull(message = "Rating debe estar presente ")
+    @Min(0) @Max(value = 5, message = "El valor no puede ser mayor que 5")
     private int rating;
 
     //@NotEmpty
@@ -56,6 +60,11 @@ public class Movie {
     @JoinColumn(name = "user_id")
     //Especifica el nombre de la columna que actúa como clave foránea en la tabla movies
     private User user;
+
+    //reviews
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+   // we have added final because of this: https://stackoverflow.com/questions/23761242/java-lombok-omitting-one-field-in-allargsconstructor
+    final List<Review> reviews = new ArrayList<>();
 
     //necesario si marcamos la clase como @Entity
 

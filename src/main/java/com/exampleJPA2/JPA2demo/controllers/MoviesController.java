@@ -74,6 +74,8 @@ public class MoviesController {
                 // creamos una nueva movie
                 // in case of error check the null in movie id
                 Movie movietoSave = new Movie(null,movie.getTitle(), movie.getAuthor(), movie.getCountry(), movie.getRating(),user.getUsername(), user);
+
+
                 //obtenemos el nombre del usuario que esta creando esta resource y lo añadimos a la movie
                 movietoSave.setOwner(user.getUsername());
 

@@ -64,7 +64,7 @@ public class Movie {
     //reviews
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
    // we have added final because of this: https://stackoverflow.com/questions/23761242/java-lombok-omitting-one-field-in-allargsconstructor
-    final List<Review> reviews = new ArrayList<>();
+    private final List<Review> reviews = new ArrayList<>();
 
     //necesario si marcamos la clase como @Entity
 
@@ -85,6 +85,11 @@ public class Movie {
         return  this.movie_id;
     }
 
+    //custom method to add review
 
+    public void addReview(Review review) {
+        reviews.add(review);
+        review.setMovie(this);
+    }
 
 }

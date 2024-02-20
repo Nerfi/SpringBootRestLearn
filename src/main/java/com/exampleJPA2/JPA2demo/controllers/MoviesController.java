@@ -1,5 +1,6 @@
 package com.exampleJPA2.JPA2demo.controllers;
 
+import com.exampleJPA2.JPA2demo.models.Review;
 import jakarta.validation.Valid;
 import com.exampleJPA2.JPA2demo.exceptions.MovieAlreadyExists;
 import com.exampleJPA2.JPA2demo.exceptions.ResourceNotFoundException;
@@ -143,6 +144,34 @@ public class MoviesController {
         movieRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    //adding review to movie
+    @PostMapping("/add/{movieId}/review")
+    @PreAuthorize("hasRole('USER') or hasRole('MODERATOR')")
+    public ResponseEntity<?> addReviewToMovie(@PathVariable Long movieId, @Valid @RequestBody Review review, UriComponentsBuilder ucb, Principal principal) {
+
+        //encontramos la movie si existe, sino lanzamos exception
+        Movie singleMovie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new ResourceNotFoundException("Not found Movie with id = " + movieId));
+
+     singleMovie.addReview(review);
+        // Establecer al usuario como autor de la revisión
+        singleMovie.setAuthor(principal.getName());
+
+// Guardar la película actualizada en el repositorio
+        movieRepository.save(singleMovie);
+
+
+        //sending back the location of the newly created movie
+        URI newMovieLocation = ucb
+                .path("/movies/{id}/review")
+                .buildAndExpand(singleMovie.getMovie_id())
+                .toUri();
+
+        return  ResponseEntity.created(newMovieLocation).build();
+
+    }
+
 
 
 

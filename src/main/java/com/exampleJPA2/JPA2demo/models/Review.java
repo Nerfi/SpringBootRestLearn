@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.util.Date;
 
 @Getter
 @Setter
@@ -22,13 +25,12 @@ public class Review {
     //Especifica el nombre de la columna que actúa como clave foránea en la tabla movies
     private Movie movie;
 
-
-    //TODO: revisar el author porque alomejor lo sacamos del principal que es mas coherente
-    @NotEmpty(message = "we need an author")
-    private String author;
+    private  String author;
     @NotEmpty(message = "description can not be empty")
     private String description;
-
+    //adding Date
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
+    private String date;
 
 
 

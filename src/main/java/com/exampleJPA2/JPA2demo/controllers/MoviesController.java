@@ -20,6 +20,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.security.Principal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -145,7 +147,6 @@ public class MoviesController {
         return ResponseEntity.noContent().build();
     }
 
-    //adding review to movie
     @PostMapping("/add/{movieId}/review")
     @PreAuthorize("hasRole('USER') or hasRole('MODERATOR')")
     public ResponseEntity<?> addReviewToMovie(@PathVariable Long movieId, @Valid @RequestBody Review review, UriComponentsBuilder ucb, Principal principal) {
@@ -153,9 +154,13 @@ public class MoviesController {
         //encontramos la movie si existe, sino lanzamos exception
         Movie singleMovie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new ResourceNotFoundException("Not found Movie with id = " + movieId));
+        review.setAuthor(principal.getName());
+        //adding date of creation
+        String dateFormmated = configureDate(new Date());
+        review.setDate(dateFormmated);
 
-     singleMovie.addReview(review);
-        // Establecer al usuario como autor de la revisión
+        singleMovie.addReview(review);
+        // Establecer al usuario como author de la review
         singleMovie.setAuthor(principal.getName());
 
 // Guardar la película actualizada en el repositorio
@@ -168,10 +173,16 @@ public class MoviesController {
                 .buildAndExpand(singleMovie.getMovie_id())
                 .toUri();
 
-        return  ResponseEntity.created(newMovieLocation).build();
+        return ResponseEntity.created(newMovieLocation).build();
 
     }
 
+    //utility method to format date before saving into review
+
+    public String configureDate(Date date) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+        return dateFormat.format(date);
+    }
 
 
 

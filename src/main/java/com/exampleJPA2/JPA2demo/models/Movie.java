@@ -73,9 +73,12 @@ public class Movie {
     }
 
     // THIS CONSTURCTOR WAS ADDED IN ORDER TO PASS THE TEST IN TEST FOLDER JUST THAT
-    public Movie(String title, String juanTesting, String country, int rating) {
+    public Movie(String title, String author, String country, int rating) {
+        this.title = title;
+        this.author = author;
+        this.country = country;
+        this.rating = rating;
     }
-
 
 
     // hemos añadido este metodo ya que JPA parece parece que solo entiende el nombre del campo cuando se llama ID(en minisculas) a secas

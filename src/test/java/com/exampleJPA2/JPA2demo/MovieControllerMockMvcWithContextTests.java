@@ -74,7 +74,7 @@ public class MovieControllerMockMvcWithContextTests {
 
         // given
         given(movieRepository.findById(2L))
-                .willReturn(Optional.of(new Movie("Bing", "Juan testing", "España", 3)));
+                .willReturn(Optional.of(new Movie("Bing", "Juan testing", "Salvador", 3)));
 
         // when
         MockHttpServletResponse response = mockMvc.perform(
@@ -85,7 +85,7 @@ public class MovieControllerMockMvcWithContextTests {
         // then
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
         assertThat(response.getContentAsString()).isEqualTo(
-                jsonMovie.write(new Movie("Bing", "Juan testing", "España", 3)).getJson()
+                jsonMovie.write(new Movie("Bing", "Juan testing", "Salvador", 3)).getJson()
         );
     }
 
@@ -101,16 +101,21 @@ public class MovieControllerMockMvcWithContextTests {
         allMovies.add(movie1);
         allMovies.add(movie2);
         allMovies.add(movie3);
+
         //when
         when(movieRepository.findAll()).thenReturn(allMovies);
 
-        mockMvc.perform(
+      mockMvc.perform(
                         get("/movies/all")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .with(csrf())
                 )
+
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(allMovies.size()))
+              .andExpect(jsonPath("$[0].title").value("test movie 1"))
+              .andExpect(jsonPath("$[1].title").value("test movie 2"))
+              .andExpect(jsonPath("$[2].title").value("test movie 3"))
                 .andDo(print());
 
 

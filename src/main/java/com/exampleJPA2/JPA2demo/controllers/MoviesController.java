@@ -10,6 +10,8 @@ import com.exampleJPA2.JPA2demo.repository.MovieRepository;
 import com.exampleJPA2.JPA2demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +27,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+//pagination
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
 @RestController
 @RequestMapping("movies")
 
@@ -38,14 +45,25 @@ public class MoviesController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<Movie>> findAll() {
+    public ResponseEntity<List<Movie>> findAll(
+        @PageableDefault(size = 10) Pageable pageable
+    ) {
 
-        List<Movie> movies = movieRepository.findAll();
+        Page<Movie> movies = movieRepository.findAll(
+                PageRequest.of(
+                        pageable.getPageNumber(),
+                        pageable.getPageSize(),
+                        pageable.getSortOr(Sort.by(Sort.Direction.DESC, "title"))
+                )
+        );
+
+        //List<Movie> movies = movieRepository.findAll();
         if (movies.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(movies);
+       // return ResponseEntity.ok(movies);
+        return ResponseEntity.ok(movies.getContent());
     }
 
 

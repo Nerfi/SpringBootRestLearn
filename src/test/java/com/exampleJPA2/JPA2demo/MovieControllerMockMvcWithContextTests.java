@@ -37,6 +37,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,6 +87,34 @@ public class MovieControllerMockMvcWithContextTests {
         assertThat(response.getContentAsString()).isEqualTo(
                 jsonMovie.write(new Movie("Bing", "Juan testing", "España", 3)).getJson()
         );
+    }
+
+    @Test
+    @WithMockUser(username = "user1", password = "pwd", roles = "USER")
+    public void canRetrieveAllMovies() throws Exception {
+        //create fake movies
+        List<Movie> allMovies = new ArrayList<>();
+        Movie movie1 = new Movie("test movie 1", "juan", "España", 3);
+        Movie movie2 = new Movie("test movie 2", "antonio", "Ecuador", 3);
+        Movie movie3 = new Movie("test movie 3", "jose", "Chile", 4);
+
+        allMovies.add(movie1);
+        allMovies.add(movie2);
+        allMovies.add(movie3);
+        //when
+        when(movieRepository.findAll()).thenReturn(allMovies);
+
+        mockMvc.perform(
+                        get("/movies/all")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .with(csrf())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(allMovies.size()))
+                .andDo(print());
+
+
+
     }
 
     @Test
@@ -234,12 +264,49 @@ public class MovieControllerMockMvcWithContextTests {
     public void shouldRejectCreatingReviewsWhenUserIsAnonymous() throws Exception {
         this.mockMvc
                 .perform(
-                        post("/api/tasks")
+                        post("/movies/add")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"title\": \"Bing\", \"author\":\"Juanako\", \"country\":\"Brasil\", \"rating\": \"3\", \"owner\": \"admina\"}")
                                 .with(csrf())
                 )
                 .andExpect(status().isUnauthorized());
+    }
+
+    //add review test
+    @Test
+    public void shouldNotAllowCreationOfReviewIfThereIsNoUSer() throws Exception {
+
+        long movieId = 10L;
+        mockMvc.perform(
+                post("/movies/add/{movieId}/review" , movieId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\":  \"random description\"}")
+                        .with(csrf())
+        )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "admina", password = "pwd", roles = {"USER", "MODERATOR"})
+    public void shouldAllowCreationOfReviewWhenThereIsAUser() throws Exception {
+        Movie movie = new Movie("Bing", "Juan testing", "España", 3);
+
+        when(movieRepository.findById(anyLong())).thenReturn(Optional.of(movie));
+        long movieId = 10L;
+
+        mockMvc.perform(
+                        post("/movies/add/{movieId}/review", movieId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"description\":  \"random description\"}")
+                                .with(csrf())
+                )
+                .andExpect(status().isCreated());
+
+        //checking if review size has increased
+        Movie movieUpdatedWithReview = movieRepository.findById(movieId).orElseThrow();
+        assertThat(movieUpdatedWithReview.getReviews()).hasSize(1);
+
+
     }
 
 }

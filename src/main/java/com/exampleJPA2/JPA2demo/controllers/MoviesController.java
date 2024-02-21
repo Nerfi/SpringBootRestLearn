@@ -39,7 +39,7 @@ public class MoviesController {
     @GetMapping("/all")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<Movie>> findAll() {
-        // de momento no tenemos nada aqui
+
         List<Movie> movies = movieRepository.findAll();
         if (movies.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -167,7 +167,7 @@ public class MoviesController {
         movieRepository.save(singleMovie);
 
 
-        //sending back the location of the newly created movie
+        //sending back the location of the newly created movie review
         URI newMovieLocation = ucb
                 .path("/movies/{id}/review")
                 .buildAndExpand(singleMovie.getMovie_id())

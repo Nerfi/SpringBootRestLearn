@@ -10,6 +10,8 @@ import com.exampleJPA2.JPA2demo.repository.UserRepository;
 import com.exampleJPA2.JPA2demo.security.jwt.UserDetailsImpl;
 
 //status lib
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
@@ -18,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,10 +40,12 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,8 +55,15 @@ import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+//pagination
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 @AutoConfigureJsonTesters
 @WebMvcTest(MoviesController.class)
+//for testing
+@EnableSpringDataWebSupport
 //@Import(SecurityConfig.class)/
 public class MovieControllerMockMvcWithContextTests {
     @Autowired
@@ -58,6 +73,29 @@ public class MovieControllerMockMvcWithContextTests {
     private MovieRepository movieRepository;
     @MockBean
     private UserRepository userRepository;
+    //for testing pagination
+
+
+    private List<Movie> movies;
+    private PageRequest pageRequest;
+    private Page<Movie> moviesPage;
+
+
+    @BeforeEach
+    void setUp(){
+        Movie movie1 = new Movie("test movie 1", "juan", "España", 3);
+        Movie movie2 = new Movie("test movie 2", "antonio", "Ecuador", 3);
+        Movie movie3 = new Movie("test movie 3", "jose", "Chile", 4);
+
+        movies = Arrays.asList(movie1, movie2, movie3);
+        moviesPage= new PageImpl<>(movies);
+       // pageRequest = PageRequest.of(0, 1);
+        pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "title"));
+
+
+    }
+
+
 
 
     @Autowired
@@ -91,36 +129,151 @@ public class MovieControllerMockMvcWithContextTests {
 
     @Test
     @WithMockUser(username = "user1", password = "pwd", roles = "USER")
-    public void canRetrieveAllMovies() throws Exception {
-        //create fake movies
-        List<Movie> allMovies = new ArrayList<>();
-        Movie movie1 = new Movie("test movie 1", "juan", "España", 3);
-        Movie movie2 = new Movie("test movie 2", "antonio", "Ecuador", 3);
-        Movie movie3 = new Movie("test movie 3", "jose", "Chile", 4);
+    void shouldBeAbleToReturnListOfMoviesWithPaginationAndSorting() throws Exception {
+        //when(movieRepository.findAll(pageRequest)).thenReturn(avengersPage);
+       // when(movieRepository.findAll(any(Pageable.class))).thenReturn(avengersPage);
+        when(movieRepository.findAll(pageRequest)).thenReturn(moviesPage);
 
-        allMovies.add(movie1);
-        allMovies.add(movie2);
-        allMovies.add(movie3);
+        ResultActions result = mockMvc.perform(get("/movies/all?pageNumber=0&pageSize=10&sort=title,desc"));
 
-        //when
-        when(movieRepository.findAll()).thenReturn(allMovies);
-
-      mockMvc.perform(
-                        get("/movies/all")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .with(csrf())
-                )
-
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(allMovies.size()))
-              .andExpect(jsonPath("$[0].title").value("test movie 1"))
-              .andExpect(jsonPath("$[1].title").value("test movie 2"))
-              .andExpect(jsonPath("$[2].title").value("test movie 3"))
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.[0].title").value(movies.get(0).getTitle()))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.[0].author").value(movies.get(0).getAuthor()))
+//                .andExpect(jsonPath("$.[0].year").value(movies.get(0).getYear()))
+//                .andExpect(jsonPath("$.[1].title").value(movies.get(1).getTitle()))
+//                .andExpect(jsonPath("$.[1].director").value(movies.get(1).getDirector()))
+//                .andExpect(jsonPath("$.[1].year").value(movies.get(1).getYear()))
                 .andDo(print());
 
-
-
+        verify(movieRepository, times(1)).findAll(pageRequest);
     }
+
+
+
+//    public void testFindAll() throws Exception{
+//        Movie movie1 = new Movie("test movie 1", "juan", "España", 3);
+//        Movie movie2 = new Movie("test movie 2", "antonio", "Ecuador", 3);
+//        Movie movie3 = new Movie("test movie 3", "jose", "Chile", 4);
+//
+//        List<Movie> avengers = Arrays.asList(movie1, movie2, movie3);
+//        Page<Movie> centrosDeCustosPage = new PageImpl<>(avengers);
+//
+//        mockMvc.perform(get("/movies/all?page=1&size=10").contentType(MediaType.APPLICATION_JSON))
+//
+//
+//
+//        //when(movieRepository.findAll(pageRequest)).thenReturn(avengersPage);
+//
+//
+//
+//
+////        Movie movie1 = new Movie("test movie 1", "juan", "España", 3);
+////        Movie movie2 = new Movie("test movie 2", "antonio", "Ecuador", 3);
+////        Movie movie3 = new Movie("test movie 3", "jose", "Chile", 4);
+////
+////        List<Movie> allMovies = Arrays.asList(movie1, movie2,movie3);
+////        Page<Movie> moviePage = new PageImpl<>(allMovies);
+////
+////        Mockito.when(movieRepository.findAll(Mockito.any(Pageable.class))).thenReturn(moviePage);
+//
+////        mockMvc.perform(get("/movies/all")
+////                        .param("page", "0")  // Página 0 (cambiar según sea necesario)
+////                        .param("size", "10")  // Tamaño de página 10 (cambiar según sea necesario)
+////                        .contentType(MediaType.APPLICATION_JSON))
+////                .andExpect(status().isOk())
+////                .andExpect(jsonPath("$").isArray())  // Asegura que la respuesta sea un array
+////              //  .andExpect(jsonPath("$.content", hasSize(allMovies.size())))
+////                .andExpect(jsonPath("$[0].title").value("test movie 1"))
+////                .andExpect(jsonPath("$[1].title").value("test movie 2"))
+////                // Agrega más aserciones según sea necesario
+////                .andExpect(jsonPath("$.number").value(0))  // Número de página
+////                .andExpect(jsonPath("$.totalElements").value(allMovies.size()))  // Total de elementos
+////                .andExpect(jsonPath("$.totalPages").value(1))  // Total de páginas
+////                .andExpect(jsonPath("$.last").value(true));
+//
+////        mockMvc.perform(get("/movies/all"))
+////                .andExpect(status().isOk())
+////                .andExpect(jsonPath("$").isNotEmpty())
+////                .andExpect(jsonPath("$.size()", is(allMovies.size())))
+////                .andExpect(jsonPath("$[0].title").value("test movie 1"))
+////                .andExpect(jsonPath("$[1].title", is("test movie 2")));
+////
+////        // Verificar que el método del repositorio fue llamado una vez con el pageable correcto
+////        Mockito.verify(movieRepository, times(1)).findAll(Mockito.any(Pageable.class));
+//
+//
+//
+//    }
+
+//    public void canRetrieveAllMovies() throws Exception {
+//        //create fake movies
+////        List<Movie> allMovies = new ArrayList<>();
+////
+////        Page<Movie> allMoviesPageable = Mockito.mock(Page.class);
+////
+////
+////        Movie movie1 = new Movie("test movie 1", "juan", "España", 3);
+////        Movie movie2 = new Movie("test movie 2", "antonio", "Ecuador", 3);
+////        Movie movie3 = new Movie("test movie 3", "jose", "Chile", 4);
+////
+////        allMovies.add(movie1);
+////        allMovies.add(movie2);
+////        allMovies.add(movie3);
+//
+//        //when
+//      //  when(movieRepository.findAll()).thenReturn(allMovies);
+//
+//        Movie movie1 = new Movie("test movie 1", "juan", "España", 3);
+//        Movie movie2 = new Movie("test movie 2", "antonio", "Ecuador", 3);
+//        Movie movie3 = new Movie("test movie 3", "jose", "Chile", 4);
+//
+//        List<Movie> allMovies = Arrays.asList(movie1, movie2,movie3);
+//        avengersPage = new PageImpl<>(allMovies);
+//        pageRequest = PageRequest.of(0,3);
+//        pageRequestWithSorting  =PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "title"));
+//
+//
+//
+////        when(movieRepository.findAll(pageRequest)).thenReturn(avengersPage);
+////        //movieRepository.findAll(PageRequest.of(1,10, Sort.Direction.DESC, "title"));
+////
+////        ResultActions result = mockMvc.perform(
+////                get("/movies/all?size=3")
+////                        .contentType(MediaType.APPLICATION_JSON)
+////                                .with(csrf())
+////
+////        );
+////        result.andExpect(status().isOk())
+////                .andExpect(jsonPath("$.[0].id").value(allMovies.get(0).getId()))
+////                .andExpect(jsonPath("$.[0].title").value(allMovies.get(0).getTitle()))
+////                .andExpect(jsonPath("$.[0].introducedInMovie").value(allMovies.get(0).getIntroducedInMovie()))
+////                .andExpect(jsonPath("$.[1].id").value(allMovies.get(1).getId()))
+////                .andExpect(jsonPath("$.[1].name").value(allMovies.get(1).getName()))
+////                .andExpect(jsonPath("$.[1].introducedInYear").value(allMovies.get(1).getIntroducedInYear()))
+//             //   .andDo(print());
+//
+//
+//
+//
+//
+//
+//      mockMvc.perform(
+//                        get("/movies/all")
+//                                .contentType(MediaType.APPLICATION_JSON)
+//                                .with(csrf())
+//                )
+//
+//                .andExpect(status().isOk())
+//               // .andExpect(jsonPath("$.size()").value(allMovies.size()))
+//              .andExpect(jsonPath("$[0].title").value("test movie 1"))
+//              .andExpect(jsonPath("$[1].title").value("test movie 2"))
+//              .andExpect(jsonPath("$[2].title").value("test movie 3"))
+//                .andDo(print());
+//
+//
+//
+//    }
 
     @Test
     @WithMockUser(username = "user1", password = "pwd", roles = "USER")

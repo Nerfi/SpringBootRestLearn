@@ -7,11 +7,10 @@ import com.exampleJPA2.JPA2demo.models.Movie;
 import com.exampleJPA2.JPA2demo.models.User;
 import com.exampleJPA2.JPA2demo.repository.MovieRepository;
 import com.exampleJPA2.JPA2demo.repository.UserRepository;
-import com.exampleJPA2.JPA2demo.security.jwt.UserDetailsImpl;
+
 
 //status lib
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
@@ -28,20 +27,17 @@ import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -52,7 +48,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 //pagination
@@ -140,10 +135,8 @@ public class MovieControllerMockMvcWithContextTests {
                 .andExpect(jsonPath("$.[0].title").value(movies.get(0).getTitle()))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.[0].author").value(movies.get(0).getAuthor()))
-//                .andExpect(jsonPath("$.[0].year").value(movies.get(0).getYear()))
-//                .andExpect(jsonPath("$.[1].title").value(movies.get(1).getTitle()))
-//                .andExpect(jsonPath("$.[1].director").value(movies.get(1).getDirector()))
-//                .andExpect(jsonPath("$.[1].year").value(movies.get(1).getYear()))
+                .andExpect(jsonPath("$.[1].title").value(movies.get(1).getTitle()))
+                .andExpect(jsonPath("$.[1].author").value(movies.get(1).getAuthor()))
                 .andDo(print());
 
         verify(movieRepository, times(1)).findAll(pageRequest);

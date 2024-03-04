@@ -8,8 +8,6 @@ import com.exampleJPA2.JPA2demo.repository.FavoriteMoviesRepository;
 import com.exampleJPA2.JPA2demo.repository.MovieRepository;
 import com.exampleJPA2.JPA2demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

@@ -2,6 +2,7 @@ package com.exampleJPA2.JPA2demo.models;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 // lombok
@@ -63,6 +64,7 @@ public class Movie {
 
     //reviews
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("movie")
    // we have added final because of this: https://stackoverflow.com/questions/23761242/java-lombok-omitting-one-field-in-allargsconstructor
     private final List<Review> reviews = new ArrayList<>();
 

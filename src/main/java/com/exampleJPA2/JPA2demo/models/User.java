@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import lombok.Getter;
 
 
 @Entity
@@ -46,6 +47,11 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     // cascade = CascadeType.ALL esto significa que cualquier operación que realices en un User (como guardar, actualizar, eliminar) se propagará a las Movie asociadas
     private List<Movie> movies = new ArrayList<>();
+
+    //referencia a las fav movies que tenemos
+    @Getter
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<FavoriteMovie> favoriteMovies = new ArrayList<>();
 
 
 
@@ -109,6 +115,11 @@ public class User {
 
     public void setMovies(List<Movie> moviesList){
         this.movies = moviesList;
+    }
+
+    public void setFavoriteMovies(List<FavoriteMovie> favMovies){
+        this.favoriteMovies = favMovies;
+
     }
 
 }

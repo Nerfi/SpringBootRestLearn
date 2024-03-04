@@ -53,7 +53,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 //pagination
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 @AutoConfigureJsonTesters
 @WebMvcTest(MoviesController.class)
@@ -125,8 +124,7 @@ public class MovieControllerMockMvcWithContextTests {
     @Test
     @WithMockUser(username = "user1", password = "pwd", roles = "USER")
     void shouldBeAbleToReturnListOfMoviesWithPaginationAndSorting() throws Exception {
-        //when(movieRepository.findAll(pageRequest)).thenReturn(avengersPage);
-       // when(movieRepository.findAll(any(Pageable.class))).thenReturn(avengersPage);
+
         when(movieRepository.findAll(pageRequest)).thenReturn(moviesPage);
 
         ResultActions result = mockMvc.perform(get("/movies/all?pageNumber=0&pageSize=10&sort=title,desc"));

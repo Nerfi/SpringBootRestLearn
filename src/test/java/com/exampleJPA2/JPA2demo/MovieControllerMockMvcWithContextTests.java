@@ -16,9 +16,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -40,7 +37,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -91,12 +87,9 @@ public class MovieControllerMockMvcWithContextTests {
 
 
 
-
     @Autowired
     private JacksonTester<Movie> jsonMovie;
 
-    @Autowired
-    private ObjectMapper objectMapper;
 
     //@WithMockUser(username = "user1", password = "pwd", roles = "USER") es para testear este endpoint con Roles ya que tenemos security dep
     // https://stackoverflow.com/questions/15203485/spring-test-security-how-to-mock-authentication
@@ -135,6 +128,7 @@ public class MovieControllerMockMvcWithContextTests {
                 .andExpect(jsonPath("$.[0].author").value(movies.get(0).getAuthor()))
                 .andExpect(jsonPath("$.[1].title").value(movies.get(1).getTitle()))
                 .andExpect(jsonPath("$.[1].author").value(movies.get(1).getAuthor()))
+                .andExpect(jsonPath("$.size()").value(movies.size()))
                 .andDo(print());
 
         verify(movieRepository, times(1)).findAll(pageRequest);

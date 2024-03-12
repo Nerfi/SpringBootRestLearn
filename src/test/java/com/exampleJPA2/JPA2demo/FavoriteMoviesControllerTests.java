@@ -52,6 +52,8 @@ public class FavoriteMoviesControllerTests {
     private Movie movieTest;
     Long userId;
     Long moviesId;
+
+    Long favoriteMovieId;
     FavoriteMovie favoriteMovie;
 
     List<FavoriteMovie> favMovies;
@@ -65,6 +67,7 @@ public class FavoriteMoviesControllerTests {
         movieTest.setMovie_id(23L);
         userId = 23L;
         moviesId = 1L;
+        favoriteMovieId = 10L;
         favoriteMovie = new FavoriteMovie();
 
         // Crear y asociar películas favoritas al usuario
@@ -161,6 +164,22 @@ public class FavoriteMoviesControllerTests {
 
 
     }
+
+    @Test
+    @WithMockUser(username = "user1", password = "pwd", roles = "USER")
+    public void canDeleteAFavoriteMovieIfIsTheRightUser() throws Exception {
+        given(favMovieRepository.findById(favoriteMovieId)).willReturn(Optional.of(favoriteMovie));
+
+         mockMvc.perform(
+                delete("/favorite-movies/{favoriteMovieId}", favoriteMovieId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+
+
+        ).andExpect(status().isNoContent());
+
+    }
+
 
 
 }

@@ -1,13 +1,17 @@
 package com.exampleJPA2.JPA2demo.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "favoritemovie")
+@AllArgsConstructor
+@NoArgsConstructor
 // need to create table in sql
 public class FavoriteMovie {
     @Id
@@ -22,5 +26,9 @@ public class FavoriteMovie {
     @ManyToOne
     @JoinColumn(name =" user_id")
     private User user;
+
+    //for testing
+    //@NotEmpty(message =  "Title debe estar presente")
+    private String owner;
 
 }

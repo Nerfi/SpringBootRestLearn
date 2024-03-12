@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 
 public interface FavoriteMoviesRepository extends JpaRepository<FavoriteMovie, Long> {
+    boolean findByIdAndOwner(Long id, String owner);
 
 }

@@ -19,10 +19,12 @@ import lombok.Getter;
         }
 )
 public class User {
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Getter
     @NotBlank
     @Size(max = 20)
     private String username;
@@ -67,16 +69,8 @@ public class User {
     }
 
 
-    public Long getId() {
-        return id;
-    }
-
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     public void setUsername(String username) {

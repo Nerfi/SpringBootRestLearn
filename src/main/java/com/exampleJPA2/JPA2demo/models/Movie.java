@@ -18,7 +18,9 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode
 @ToString(exclude = "user")
+//https://stackoverflow.com/questions/68314072/why-to-use-allargsconstructor-and-noargsconstructor-together-over-an-entity
 @AllArgsConstructor
+@NoArgsConstructor
 /*
 
 La anotación @AllArgsConstructor en Lombok es una anotación que se utiliza para generar automáticamente un constructor que incluye todos los campos de la clase.
@@ -68,11 +70,11 @@ public class Movie {
    // we have added final because of this: https://stackoverflow.com/questions/23761242/java-lombok-omitting-one-field-in-allargsconstructor
     private final List<Review> reviews = new ArrayList<>();
 
-    //necesario si marcamos la clase como @Entity
+    //necesario si marcamos la clase como @Entity y si añadimos @NoArgsConstructor
 
-    public Movie() {
-
-    }
+//    public Movie() {
+//
+//    }
 
     // THIS CONSTURCTOR WAS ADDED IN ORDER TO PASS THE TEST IN TEST FOLDER JUST THAT
     public Movie(String title, String author, String country, int rating) {

@@ -57,12 +57,10 @@ public class MoviesController {
                 )
         );
 
-        //List<Movie> movies = movieRepository.findAll();
         if (movies.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-       // return ResponseEntity.ok(movies);
         return ResponseEntity.ok(movies.getContent());
     }
 

@@ -19,6 +19,7 @@ import com.exampleJPA2.JPA2demo.security.jwt.payload.LoginRequest;
 import com.exampleJPA2.JPA2demo.security.jwt.payload.MessageResponse;
 import com.exampleJPA2.JPA2demo.security.jwt.payload.SignupRequest;
 import com.exampleJPA2.JPA2demo.security.jwt.payload.UserInfoResponse;
+import com.exampleJPA2.JPA2demo.services.JavaSmptGmailSenderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -50,6 +51,9 @@ public class AuthController {
 
    @Autowired
    JwtUtils jwtUtils;
+
+@Autowired
+JavaSmptGmailSenderService mailSender;
 
 
     @PostMapping("/signin")
@@ -123,6 +127,14 @@ public class AuthController {
         }
         user.setRoles(roles);
         userRepository.save(user);
+
+        //sending welcome message when user signsup in the app
+        String toEmail = user.getEmail();
+        String subject = "Welcome to our application!";
+        String body = "Hi " + user.getUsername() + ",\n\nWelcome to our application! We're glad to have you here.";
+        mailSender.sendEmail(toEmail, subject, body);
+
+
         //return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
         return null;
 

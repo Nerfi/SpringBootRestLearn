@@ -186,6 +186,20 @@ public class FavoriteMoviesControllerTests {
 
     }
 
+    @Test
+    @WithMockUser(username = "admina", password = "pwd", roles = "USER")
+    public void cannotDeleteFavoriteMovieIfIsNotOwner() throws Exception {
+        Long falseMovieId = 100L;
+        mockMvc.perform(
+                delete("/favorite-movies/{falseMovieId}", falseMovieId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+
+
+        ).andExpect(status().isUnauthorized());
+    }
+
 
 
 }

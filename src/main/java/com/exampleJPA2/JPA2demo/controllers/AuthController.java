@@ -53,7 +53,7 @@ public class AuthController {
 
 
     @PostMapping("/signin")
-    private ResponseEntity<?> authenticateUser( @RequestBody LoginRequest loginRequest){
+    private ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
@@ -64,7 +64,7 @@ public class AuthController {
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
 
         List<String> roles = userDetails.getAuthorities().stream()
-                .map(item-> item.getAuthority())
+                .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())

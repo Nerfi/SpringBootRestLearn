@@ -16,9 +16,6 @@ public class Jpa2demoApplication {
 		SpringApplication.run(Jpa2demoApplication.class, args);
 	}
 
-//	@EventListener(ApplicationReadyEvent.class)
-//	public void sendMail(){
-//		senderService.sendEmail("juanchuu.jfpc@gmail.com","This is subject","This is email body");
-//	}
+
 
 }

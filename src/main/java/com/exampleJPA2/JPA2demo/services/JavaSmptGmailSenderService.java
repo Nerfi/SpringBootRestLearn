@@ -16,7 +16,7 @@ public class JavaSmptGmailSenderService {
 
     public void sendEmail(String toEmail, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("your-sender-email@gmail.com");
+       // message.setFrom("your-sender-email@gmail.com");
         message.setTo(toEmail);
         message.setSubject(subject);
         message.setText(body);

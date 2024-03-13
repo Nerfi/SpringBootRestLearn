@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -54,6 +55,10 @@ public class AuthController {
 
 @Autowired
 JavaSmptGmailSenderService mailSender;
+
+//test , delete later on
+@Autowired
+private JavaMailSender javaMailSender;
 
 
     @PostMapping("/signin")
@@ -128,11 +133,13 @@ JavaSmptGmailSenderService mailSender;
         user.setRoles(roles);
         userRepository.save(user);
 
+
         //sending welcome message when user signsup in the app
         String toEmail = user.getEmail();
         String subject = "Welcome to our application!";
         String body = "Hi " + user.getUsername() + ",\n\nWelcome to our application! We're glad to have you here.";
         mailSender.sendEmail(toEmail, subject, body);
+
 
 
         //return ResponseEntity.ok(new MessageResponse("User registered successfully!"));

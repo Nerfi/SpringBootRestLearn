@@ -75,6 +75,7 @@ public class FavoriteMoviesController {
             FavoriteMovie favoriteMovie = new FavoriteMovie();
             favoriteMovie.setUser(user);
             favoriteMovie.setMovie(movie);
+
             favoriteMovie.setOwner(user.getUsername());
 
             favMovieRepository.save(favoriteMovie);

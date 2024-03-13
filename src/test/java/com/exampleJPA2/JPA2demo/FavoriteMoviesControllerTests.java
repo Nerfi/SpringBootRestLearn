@@ -47,7 +47,7 @@ public class FavoriteMoviesControllerTests {
     @MockBean
     FavoriteMoviesRepository favMovieRepository;
 
-    //
+
     private User userTest;
     private Movie movieTest;
     Long userId;
@@ -67,21 +67,26 @@ public class FavoriteMoviesControllerTests {
         movieTest.setMovie_id(23L);
         userId = 23L;
         moviesId = 1L;
-        favoriteMovieId = 10L;
+        favoriteMovieId = 15L;
         favoriteMovie = new FavoriteMovie();
+
+        favoriteMovie.setOwner("admina");
 
         // Crear y asociar películas favoritas al usuario
         FavoriteMovie favoriteMovie1 = new FavoriteMovie();
         favoriteMovie1.setUser(userTest);
         favoriteMovie1.setMovie(movieTest);
 
+
         FavoriteMovie favoriteMovie2 = new FavoriteMovie();
         favoriteMovie2.setUser(userTest);
         favoriteMovie2.setMovie(movieTest);
 
+
         FavoriteMovie favoriteMovie3 = new FavoriteMovie();
         favoriteMovie3.setUser(userTest);
         favoriteMovie3.setMovie(movieTest);
+
 
         favMovies = Arrays.asList(favoriteMovie1, favoriteMovie2, favoriteMovie3);
         // con este setter setFavoriteMovies creamos la relacion la relacion entre el usuer y sus favorites movies
@@ -102,7 +107,7 @@ public class FavoriteMoviesControllerTests {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON)
                                 .with(csrf())
-                //hemos añadido la linea de arriba ya que al tener spring security activado
+                //hemos añadido la linea de arriba(with(csrf)) ya que al tener spring security activado
                 //al hacer una peticion post necesitamos un token para que la peticion se lleve acabo
                 //al no tener csrf activado , si hacemos un post no llevara token por lo cual no podremos
                 //hacer el post
@@ -166,14 +171,15 @@ public class FavoriteMoviesControllerTests {
     }
 
     @Test
-    @WithMockUser(username = "user1", password = "pwd", roles = "USER")
+    @WithMockUser(username = "admina", password = "pwd", roles = "USER")
     public void canDeleteAFavoriteMovieIfIsTheRightUser() throws Exception {
         given(favMovieRepository.findById(favoriteMovieId)).willReturn(Optional.of(favoriteMovie));
 
-         mockMvc.perform(
+        mockMvc.perform(
                 delete("/favorite-movies/{favoriteMovieId}", favoriteMovieId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
+                        .with(csrf())
 
 
         ).andExpect(status().isNoContent());
